@@ -76,6 +76,18 @@ namespace esuite.Ditester
             await start.Invoke(instance);
         }
 
+        /// <summary>
+        /// Get service of type <c>T</c>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>
+        /// The service instance or null if there is no service of type <c>T</c>.
+        /// </returns>
+        public T? RequestService<T>() where T : class
+        {
+            return GetProvider().GetService<T>();
+        }
+
         public void Dispose()
         {
             Dispose(true);

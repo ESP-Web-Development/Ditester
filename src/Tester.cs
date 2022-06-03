@@ -45,6 +45,11 @@ internal class Tester : ITester
         }
     }
 
+    public T? RequestService<T>() where T : class
+    {
+        return ServiceProvider?.GetService(typeof(T)) as T;
+    }
+
     public void AddTestClasses(IEnumerable<Type>? types)
     {
         var builder = new StringBuilder("Tester:");
