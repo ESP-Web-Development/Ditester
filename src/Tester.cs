@@ -78,13 +78,16 @@ internal class Tester : ITester
 
     private bool IsValidMethod(MethodInfo methodInfo)
     {
+        // Valid methods are parameterless and should return
+        // void, Task or types derived from Task.
+
         if (methodInfo.GetParameters().Length != 0)
             return false;
 
         return
             methodInfo.ReturnType == typeof(void) ||
             methodInfo.ReturnType == typeof(Task) ||
-            methodInfo.ReturnType.IsAssignableFrom(typeof(Task));
+            methodInfo.ReturnType.IsAssignableTo(typeof(Task));
     }
 
     private async Task<bool> RunMethod(MethodInfo method, object objInstance, Type objType)

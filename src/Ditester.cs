@@ -46,7 +46,7 @@ namespace esuite.Ditester
         public IEnumerable<Type> IdentifyTests()
         {
             return Assembly.GetExecutingAssembly().GetTypes()
-                .Where(t => t.IsAssignableTo(typeof(IDitest)) && t != typeof(IDitest));
+                .Where(t => IsValidType(t));
         }
 
         public async Task StartAsync(Func<ITester, Task> start)
@@ -93,5 +93,17 @@ namespace esuite.Ditester
         }
 
         private IServiceProvider GetProvider() => _host?.Services!;
+
+        private bool IsValidType(Type t)
+        {
+            return
+                // Types should be able to be instantiated:
+                t.GetConstructors().Length != 0 &&
+                !t.IsAbstract &&
+                !t.IsInterface &&
+                // We only care about IDitest implementations:
+                t.IsAssignableTo(typeof(IDitest)) &&
+                t != typeof(IDitest);
+        }
     }
 }
