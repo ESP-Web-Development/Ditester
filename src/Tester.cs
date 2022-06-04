@@ -10,7 +10,8 @@ namespace esuite.Ditester;
 internal class Tester : ITester
 {
     private ILogger _logger;
-    private IEnumerable<Type> _tests = Enumerable.Empty<Type>();
+    private List<TestMethods> _testMethodsList = new();
+    private int _totalTests = 0;
     private int _runTests = 0;
     private int _successTests = 0;
 
@@ -37,7 +38,7 @@ internal class Tester : ITester
             return _runTests - _successTests;
         }
     }
-    public int Total => _tests.Count();
+    public int Total => _totalTests;
 
     // Implementation properties
     public bool ThrowOnFail { get; set; }
@@ -53,9 +54,7 @@ internal class Tester : ITester
         if (ServiceProvider is null)
             return;
 
-        var typeMethods = GetMethods();
-
-        foreach (var typeMethod in typeMethods)
+        foreach (var typeMethod in _testMethodsList)
         {
             var instance = ServiceProvider.GetService(typeMethod.ParentType);
             if (instance is null)
@@ -76,16 +75,31 @@ internal class Tester : ITester
         return ServiceProvider?.GetService(typeof(T)) as T;
     }
 
-    public void AddTestClasses(IEnumerable<Type>? types)
+    public void SortTestClasses(Func<string, string, int> compare)
     {
-        _tests = types ?? Enumerable.Empty<Type>();
+        _testMethodsList.Sort((x, y) => compare(x.ParentType.Name, y.ParentType.Name));
     }
 
-    private IEnumerable<TestMethods> GetMethods()
+    public void SortTestMethods(Func<string, string, int> compare)
+    {
+        foreach (var testMethods in _testMethodsList)
+            testMethods.SortMethods(compare);
+    }
+
+    // Public because it is called by Ditester.
+    // It is not included in a constructor in order to
+    // simplify injection of ITester based on this instance.
+    public void AddTestClasses(IEnumerable<Type>? types)
+    {
+        _testMethodsList = GetTestMethods(types ?? Enumerable.Empty<Type>());
+        _totalTests = _testMethodsList.Sum(tm => tm.MethodsCount);
+    }
+
+    private List<TestMethods> GetTestMethods(IEnumerable<Type> testClasses)
     {
         var foundTypeMethods = new List<TestMethods>();
 
-        foreach (var testClass in _tests)
+        foreach (var testClass in testClasses)
         {
             var testMethods = new TestMethods(testClass);
 
@@ -123,7 +137,7 @@ internal class Tester : ITester
             if (IsAsyncMethod(method))
                 await InvokeAsyncMethod(method, objInstance)!;
             else
-                method.Invoke(objInstance, null);
+                InvokeMethod(method, objInstance);
 
             return true;
         }
@@ -132,7 +146,8 @@ internal class Tester : ITester
             _logger.LogError($"Failed to run {method.Name} from {objType.Name}.");
 
             var stackTrace = new StackTrace(ex, true);
-            var frame = stackTrace.GetFrame(1);
+            // 0 - RunMethod, 1 - Invoke(Async)Method, 2 - The method
+            var frame = stackTrace.GetFrame(2);
 
             string methodName = frame?.GetMethod()?.Name ?? "notfound";
             string fileName = frame?.GetFileName() ?? "notfound";
@@ -149,10 +164,14 @@ internal class Tester : ITester
         return false;
     }
 
+    private void InvokeMethod(MethodInfo method, object objInstance)
+    {
+        method.Invoke(objInstance, null);
+    }
+
     private Task? InvokeAsyncMethod(MethodInfo method, object objInstance)
     {
-        var result = method.Invoke(objInstance, null) as Task;
-        return result;
+        return method.Invoke(objInstance, null) as Task;
     }
 
     private static bool IsAsyncMethod(MethodInfo method)

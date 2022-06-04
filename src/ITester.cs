@@ -37,4 +37,16 @@ public interface ITester
     /// </summary>
     /// <value></value>
     int Total { get; }
+
+    /// <summary>
+    /// Sorts all classes containing testing methods.
+    /// </summary>
+    /// <param name="compare"></param>
+    void SortTestClasses(Func<string, string, int> compare);
+
+    /// <summary>
+    /// Sorts all methods within a test class.
+    /// </summary>
+    /// <param name="compare"></param>
+    void SortTestMethods(Func<string, string, int> compare);
 }

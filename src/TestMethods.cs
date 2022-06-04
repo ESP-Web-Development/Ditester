@@ -10,6 +10,7 @@ internal class TestMethods
 
     public Type ParentType => _parentType;
     public IEnumerable<MethodInfo> Methods => _methods;
+    public int MethodsCount => _methods.Count;
 
     public TestMethods(Type parentType)
     {
@@ -20,4 +21,8 @@ internal class TestMethods
 
     public void AddMethods(IEnumerable<MethodInfo> methods) => _methods.AddRange(methods);
 
+    public void SortMethods(Func<string, string, int> compare)
+    {
+        _methods.Sort((x, y) => compare.Invoke(x.Name, y.Name));
+    }
 }
