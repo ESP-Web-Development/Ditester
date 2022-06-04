@@ -30,6 +30,7 @@ public class PrettyMessageService
 
     public void InfoMessage() => _logger.LogInformation("This is a pretty message :)");
     public void ErrorMessage() => _logger.LogError("This is an ugly message :(");
+    public void CustomMessage(string msg) => _logger.LogInformation(msg);
 }
 
 class PrettyMessageTest : IDitest
@@ -40,4 +41,16 @@ class PrettyMessageTest : IDitest
 
     public void Test1() => _prettyMsg.InfoMessage();
     public void Test2() => _prettyMsg.ErrorMessage();
+
+    public Task Test3()
+    {
+        _prettyMsg.CustomMessage("Message sent from Task.");
+        return Task.FromResult(0);
+    }
+ 
+    public async Task Test4()
+    {
+        await Task.Delay(1000);
+        _prettyMsg.CustomMessage("Async Task finished successfully.");
+    }
 }
