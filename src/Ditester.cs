@@ -9,11 +9,6 @@ namespace esuite.Ditester
 {
     public class Ditester : IDisposable
     {
-        public enum TestType
-        {
-            Singleton, Transient, Scoped
-        }
-
         const string _defaultConfigJsonPath = "appsettings.json";
 
         private bool _disposed = false;
@@ -25,12 +20,46 @@ namespace esuite.Ditester
 
         private IEnumerable<Type>? _tests;
 
+        /// <summary>
+        /// Create a new Ditester instance.
+        /// </summary>
+        /// <param name="configureDelegate">
+        /// Function that configures the <see cref="Microsoft.Extensions.Hosting.HostBuilderContext" /> and
+        /// <see cref="Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+        /// </param>
+        /// <param name="throw">Whether to continue throwing exceptions thrown by tests.</param>
         public Ditester(Action<HostBuilderContext, IServiceCollection> configureDelegate, bool @throw = false)
             : this(new string[] {}, null, configureDelegate, @throw) {}
 
+        /// <summary>
+        /// Create a new Ditester instance.
+        /// </summary>
+        /// <param name="args">
+        /// Arguments to be passed to the underlying <see cref="Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(string[])" />.
+        /// </param>
+        /// <param name="configureDelegate">
+        /// Function that configures the <see cref="Microsoft.Extensions.Hosting.HostBuilderContext" /> and
+        /// <see cref="Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+        /// </param>
+        /// <param name="throw">Whether to continue throwing exceptions thrown by tests.</param>
         public Ditester(string[] args, Action<HostBuilderContext, IServiceCollection> configureDelegate, bool @throw = false)
             : this(args, null, configureDelegate, @throw) {}
 
+        /// <summary>
+        /// Create a new Ditester instance.
+        /// </summary>
+        /// <param name="args">
+        /// Arguments to be passed to the underlying <see cref="Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder(string[])" />
+        /// </param>
+        /// <param name="configJsonPath">
+        /// JSON file path to be used as host configuration and to be injected as <see cref="Microsoft.Extensions.Configuration.IConfiguration" />.
+        /// Default: <c>appsettings.json</c>.
+        /// </param>
+        /// <param name="configureDelegate">
+        /// Function that configures the <see cref="Microsoft.Extensions.Hosting.HostBuilderContext" /> and
+        /// <see cref="Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+        /// </param>
+        /// <param name="throw">Whether to continue throwing exceptions thrown by tests.</param>
         public Ditester(string[] args, string? configJsonPath, Action<HostBuilderContext, IServiceCollection> configureDelegate, bool @throw = false)
         {
             _throw = @throw;
@@ -43,17 +72,13 @@ namespace esuite.Ditester
                 });
         }
 
-        public IEnumerable<Type> IdentifyTests()
-        {
-            var assembly = Assembly.GetEntryAssembly(); 
-
-            if (assembly is null)
-                throw new DitesterException("Cannot get entry assembly (Assembly.GetEntryAssembly).");
-
-            return assembly.GetTypes()
-                .Where(t => IsValidType(t));
-        }
-
+        /// <summary>
+        /// Start the Dependency Injection Tester (Ditester).
+        /// </summary>
+        /// <param name="start">
+        /// Async function that exposes the <see cref="esuite.Ditester.ITester" /> to the user.
+        /// </param>
+        /// <returns></returns>
         public async Task StartAsync(Func<ITester, Task> start)
         {
             _tests = IdentifyTests();
@@ -75,7 +100,7 @@ namespace esuite.Ditester
 
             var instance = provider.GetRequiredService<Tester>();
             instance.ThrowOnFail = _throw;
-            instance.ServiceProvider = GetProvider();
+            instance.ServiceProvider = provider;
             instance.AddTestClasses(_tests);
 
             await start.Invoke(instance);
@@ -110,6 +135,16 @@ namespace esuite.Ditester
         }
 
         private IServiceProvider GetProvider() => _host?.Services!;
+
+        private IEnumerable<Type> IdentifyTests()
+        {
+            var assembly = Assembly.GetEntryAssembly(); 
+
+            if (assembly is null)
+                throw DitesterException.CannotGetEntryAssembly();
+
+            return assembly.GetTypes().Where(t => IsValidType(t));
+        }
 
         private bool IsValidType(Type t)
         {

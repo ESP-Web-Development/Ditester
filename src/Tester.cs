@@ -14,6 +14,32 @@ internal class Tester : ITester
     private int _runTests = 0;
     private int _successTests = 0;
 
+    // Public properties (ITester)
+    public bool Running { get; private set; }
+    public bool Completed { get; private set; }
+    public int Successful
+    {
+        get
+        {
+            if (!Completed)
+                throw DitesterException.TesterIncompleteProperty(nameof(Successful));
+
+            return _successTests;
+        }
+    }
+    public int Failed
+    {
+        get
+        {
+            if (!Completed)
+                throw DitesterException.TesterIncompleteProperty(nameof(Failed));
+
+            return _runTests - _successTests;
+        }
+    }
+    public int Total => _tests.Count();
+
+    // Implementation properties
     public bool ThrowOnFail { get; set; }
     public IServiceProvider? ServiceProvider { get; set; }
 
@@ -52,12 +78,7 @@ internal class Tester : ITester
 
     public void AddTestClasses(IEnumerable<Type>? types)
     {
-        var builder = new StringBuilder("Tester:");
-
         _tests = types ?? Enumerable.Empty<Type>();
-
-        foreach (var type in _tests)
-            builder.AppendLine($"Adding test class \"{type.Name}\"");
     }
 
     private IEnumerable<TestMethods> GetMethods()
