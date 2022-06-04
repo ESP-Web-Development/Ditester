@@ -45,7 +45,12 @@ namespace esuite.Ditester
 
         public IEnumerable<Type> IdentifyTests()
         {
-            return Assembly.GetExecutingAssembly().GetTypes()
+            var assembly = Assembly.GetEntryAssembly(); 
+
+            if (assembly is null)
+                throw new DitesterException("Cannot get entry assembly (Assembly.GetEntryAssembly).");
+
+            return Assembly.GetEntryAssembly()!.GetTypes()
                 .Where(t => IsValidType(t));
         }
 
