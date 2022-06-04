@@ -8,7 +8,7 @@ void Configure(HostBuilderContext builderContext, IServiceCollection services)
 {
     // Add your services here.
 
-    services.AddScoped<PrettyMessageService>(); // in Tests.cs
+    services.AddScoped<PrettyMessageService>();
 }
 
 var ditester = new Ditester(Configure, true);
