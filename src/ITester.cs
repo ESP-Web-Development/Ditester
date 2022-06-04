@@ -6,7 +6,7 @@ public interface ITester
     /// Starts running all <see cref="esuite.Ditester.IDitest" />s.
     /// </summary>
     /// <returns></returns>
-    Task RunTests();
+    Task RunTestsAsync();
 
     /// <summary>
     /// Whether tests are running.

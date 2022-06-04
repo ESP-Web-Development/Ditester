@@ -19,7 +19,7 @@ await ditester.StartAsync(async tester =>
     var logger = ditester.RequestService<ILogger>();
 
     logger?.LogInformation("Starting tests...");
-    await tester.RunTests();
+    await tester.RunTestsAsync();
 });
 
 // Service to be injected (line 11 & 43).

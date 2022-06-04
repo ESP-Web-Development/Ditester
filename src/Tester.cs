@@ -49,7 +49,7 @@ internal class Tester : ITester
         _logger = logger;
     }
 
-    public async Task RunTests()
+    public async Task RunTestsAsync()
     {
         if (ServiceProvider is null)
             return;
