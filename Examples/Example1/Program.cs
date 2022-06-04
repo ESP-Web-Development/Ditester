@@ -22,6 +22,7 @@ await ditester.StartAsync(async tester =>
     await tester.RunTests();
 });
 
+// Service to be injected (line 11 & 43).
 public class PrettyMessageService
 {
     private ILogger _logger;
@@ -33,6 +34,8 @@ public class PrettyMessageService
     public void CustomMessage(string msg) => _logger.LogInformation(msg);
 }
 
+// Test class - detected automatically by Ditest.
+// No need to be explicitly specified anywhere.
 class PrettyMessageTest : IDitest
 {
     private PrettyMessageService _prettyMsg;
