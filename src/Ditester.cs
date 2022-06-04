@@ -50,7 +50,7 @@ namespace esuite.Ditester
             if (assembly is null)
                 throw new DitesterException("Cannot get entry assembly (Assembly.GetEntryAssembly).");
 
-            return Assembly.GetEntryAssembly()!.GetTypes()
+            return assembly.GetTypes()
                 .Where(t => IsValidType(t));
         }
 
