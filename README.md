@@ -1,4 +1,4 @@
-# Ditester - Dependency Injection Tester
+# ![Ditester](DitesterIconSmall.png) Ditester - Dependency Injection Tester
 
 Simple and lightweight library for testing code written using the
 dependency injection design pattern.
@@ -6,6 +6,13 @@ dependency injection design pattern.
 Written in C#, .NET 6.0.
 
 ## Installation
+
+### NuGet
+
+Ditester is on NuGet as [`esuite.Ditester`](https://www.nuget.org/packages/esuite.Ditester/0.0.9). Install it from your package manager, or use the .NET CLI:
+`dotnet add package esuite.Ditester`.
+
+### Clone
 
 Clone this repository and include the *Ditester.csproj* project reference in your own testing project via `<ProjectReference Include="Ditester/src/Ditester.csproj" />`, like [here](https://github.com/ESP-Web-Development/Ditester/blob/main/Examples/Example1/Example1.csproj).
 
