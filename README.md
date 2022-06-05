@@ -1,9 +1,13 @@
 # Ditester - Dependency Injection Tester
 
-Simple and lightweight library for testing code using the
+Simple and lightweight library for testing code written using the
 dependency injection design pattern.
 
 Written in C#, .NET 6.0.
+
+## Installation
+
+Clone this repository and include the *Ditester.csproj* project reference in your own testing project via `<ProjectReference Include="Ditester/src/Ditester.csproj" />`, like [here](https://github.com/ESP-Web-Development/Ditester/blob/main/Examples/Example1/Example1.csproj).
 
 ## Usage
 
@@ -45,9 +49,9 @@ await ditester.StartAsync(async tester =>
 
 Easy as pie.
 
-## Features
+## About Ditester
 
-The dependency injection in this library is done by [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection).
+The dependency injection in this library is done with [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection), the same as ASP.NET Core. This means that you can also test services and controllers and expect identical behavior as in your application.
 
 ## License
 
