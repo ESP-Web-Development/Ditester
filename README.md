@@ -9,7 +9,7 @@ Written in C#, .NET 6.0.
 
 Clone this repository and include the *Ditester.csproj* project reference in your own testing project via `<ProjectReference Include="Ditester/src/Ditester.csproj" />`, like [here](https://github.com/ESP-Web-Development/Ditester/blob/main/Examples/Example1/Example1.csproj).
 
-Please note that if your IDE does not solve dependencies by itself when you include the project reference, all you have to do is install [Microsoft.Extensions.Hosting via Nuget](https://www.nuget.org/packages/Microsoft.Extensions.Hosting).
+Please note that if your IDE does not resolve the dependencies automatically when you include the project reference, all you have to do is install [Microsoft.Extensions.Hosting via Nuget](https://www.nuget.org/packages/Microsoft.Extensions.Hosting).
 
 ## Usage
 
