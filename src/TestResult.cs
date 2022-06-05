@@ -27,6 +27,12 @@ public class TestResult
         _success = success;
     }
 
+    internal TestResult(Type testClassType, MethodInfo testMethod, bool success, Exception exception)
+        : this(testClassType, testMethod, success)
+    {
+        Exception = exception;
+    }
+
     public override string ToString()
     {
         return string.Format(

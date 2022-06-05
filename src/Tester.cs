@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace esuite.Ditester;
@@ -59,20 +60,24 @@ internal class Tester : ITester
 
         foreach (var typeMethod in _testMethodsList)
         {
-            var instance = ServiceProvider.GetService(typeMethod.ParentType);
-            if (instance is null)
-                continue;
- 
-            foreach (var method in typeMethod.Methods)
-            {
-                _runTests++;
- 
-                var result = await RunMethod(method, instance, typeMethod.ParentType, log);
-                if (result.Success)
-                    _successTests++;
+            var type = typeMethod.ParentType;
+            object instance;
 
-                _resultCol.AddResult(result);
+            try
+            {
+                instance = InstantiateService(type);
             }
+            catch (Exception ex)
+            {
+                var inner = DitesterException.FailedTypeInitialization(type.Name, ex);
+                _resultCol.AddResults(typeMethod.Methods.Select(m => new TestResult(type, m, false, inner)));
+                continue;
+            }
+ 
+            var results = await RunMethods(typeMethod.Methods, instance, type, log);
+            _runTests += results.Count();
+            _successTests += results.Count(r => r.Success);
+            _resultCol.AddResults(results);
         }
 
         Running = false;
@@ -114,6 +119,11 @@ internal class Tester : ITester
         _totalTests = _testMethodsList.Sum(tm => tm.MethodsCount);
     }
 
+    private object InstantiateService(Type type)
+    {
+        return ServiceProvider!.GetRequiredService(type);
+    }
+
     private List<TestMethods> GetTestMethods(IEnumerable<Type> testClasses)
     {
         var foundTypeMethods = new List<TestMethods>();
@@ -133,6 +143,16 @@ internal class Tester : ITester
         }
 
         return foundTypeMethods;
+    }
+
+    private async Task<IEnumerable<TestResult>> RunMethods(IEnumerable<MethodInfo> methods, object objInstance, Type objType, bool log)
+    {
+        var results = new List<TestResult>();
+
+        foreach (var method in methods)
+            results.Add(await RunMethod(method, objInstance, objType, log));
+
+        return results;
     }
 
     private async Task<TestResult> RunMethod(MethodInfo method, object objInstance, Type objType, bool log)

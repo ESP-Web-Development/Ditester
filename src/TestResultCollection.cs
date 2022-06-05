@@ -24,6 +24,13 @@ public class TestResultCollection : IEnumerable<TestResult>
             _success++;
     }
 
+    internal void AddResults(IEnumerable<TestResult> results)
+    {
+        _results.AddRange(results);
+        _total += results.Count();
+        _success += results.Count(r => r.Success);
+    }
+
     public IEnumerator<TestResult> GetEnumerator()
     {
         return _results.GetEnumerator();
