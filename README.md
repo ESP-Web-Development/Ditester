@@ -10,7 +10,7 @@ Written in C#, .NET 6.0.
 ### NuGet
 
 Ditester is on NuGet as [`esuite.Ditester`](https://www.nuget.org/packages/esuite.Ditester/0.0.9). Install it from your package manager, or use the .NET CLI:
-> `dotnet add package esuite.Ditester`.
+> `dotnet add package esuite.Ditester`
 
 ### Clone
 
