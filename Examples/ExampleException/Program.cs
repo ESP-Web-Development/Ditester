@@ -8,10 +8,7 @@ var ditester = new Ditester((_, services) =>
     services.AddSingleton<Service>();
 });
 
-await ditester.StartAsync(async tester =>
-{
-    await tester.RunTestsAsync();
-});
+ditester.StartAndRun();
 
 public class Service
 {

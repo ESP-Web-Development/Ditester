@@ -11,6 +11,7 @@ internal class Tester : ITester
 {
     private ILogger _logger;
     private List<TestMethods> _testMethodsList = new();
+    private TestResultCollection _resultCol = new();
     private int _totalTests = 0;
     private int _runTests = 0;
     private int _successTests = 0;
@@ -49,7 +50,7 @@ internal class Tester : ITester
         _logger = logger;
     }
 
-    public async Task RunTestsAsync()
+    public async Task RunTestsAsync(bool log)
     {
         if (ServiceProvider is null)
             return;
@@ -66,13 +67,26 @@ internal class Tester : ITester
             {
                 _runTests++;
  
-                if (await RunMethod(method, instance, typeMethod.ParentType))
+                var result = await RunMethod(method, instance, typeMethod.ParentType, log);
+                if (result.Success)
                     _successTests++;
+
+                _resultCol.AddResult(result);
             }
         }
 
         Running = false;
         Completed = true;
+    }
+
+    public Task RunTestsAsync() => RunTestsAsync(log: true);
+
+    public TestResultCollection GetResults()
+    {
+        if (!Completed)
+            throw DitesterException.TesterIncompleteResults();
+
+        return _resultCol;
     }
 
     public T? RequestService<T>() where T : class
@@ -121,8 +135,10 @@ internal class Tester : ITester
         return foundTypeMethods;
     }
 
-    private async Task<bool> RunMethod(MethodInfo method, object objInstance, Type objType)
+    private async Task<TestResult> RunMethod(MethodInfo method, object objInstance, Type objType, bool log)
     {
+        var result = new TestResult(objType, method, false);
+
         try
         {
             if (IsAsyncMethod(method))
@@ -130,29 +146,39 @@ internal class Tester : ITester
             else
                 InvokeMethod(method, objInstance);
 
-            return true;
+            result.Success = true;
         }
         catch (TargetInvocationException ex)
         {
-            var errReport = new StringBuilder();
-            errReport.AppendLine($"Test {method.Name} from {objType.Name} threw an exception.");
-            errReport.AppendLine(ex.InnerException?.Message);
+            result.Exception = ex.InnerException!;
 
-            _logger.LogError(errReport.ToString());
+            if (log)
+            {
+                var errReport = new StringBuilder();
+                errReport.AppendLine($"Test {method.Name} from {objType.Name} threw an exception.");
+                errReport.AppendLine(result.Exception.Message);
+
+                _logger.LogError(errReport.ToString());
+            }
 
             if (ThrowOnFail)
-                throw;
+                throw result.Exception;
         }
         catch (Exception ex)
         {
-            var errReport = new StringBuilder();
-            errReport.AppendLine($"Failed to invoke test {method.Name} from {objType.Name}!");
-            errReport.AppendLine(ex.Message);
+            result.Exception = ex;
 
-            _logger.LogCritical(errReport.ToString());
+            if (log)
+            {
+                var errReport = new StringBuilder();
+                errReport.AppendLine($"Failed to invoke test {method.Name} from {objType.Name}!");
+                errReport.AppendLine(ex.Message);
+
+                _logger.LogCritical(errReport.ToString());
+            }
         }
  
-        return false;
+        return result;
     }
 
     private static bool IsValidMethod(MethodInfo methodInfo)

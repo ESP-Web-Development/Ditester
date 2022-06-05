@@ -41,17 +41,42 @@ public class MyTestClass : IDitest
 ### 3. Run your tests
 
 ``` C#
+await ditester.StartAndRunAsync();
+```
+
+Or, if you are the hands-on type:
+
+``` C#
 await ditester.StartAsync(async tester =>
 {
-    await tester.RunTestsAsync();
+    var logger = ditester.RequestService<ILogger>();
+    logger?.LogInformation("Starting testing!");
+
+    await tester.RunAsync(log: false);
 });
+```
+
+Or, if you are the *oldschool* type
+
+``` C#
+// Same as StartAndRunAsync().Wait();
+ditester.StartAndRun();
+```
+
+### 4. Optional: View your results
+
+``` C#
+foreach (var testResult in ditester.GetResults())
+{
+    Console.WriteLine(testResult);
+}
 ```
 
 Easy as pie.
 
 ## About Ditester
 
-The dependency injection in this library is done with [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection), the same as ASP.NET Core. This means that you can also test services and controllers and expect identical behavior as in your application.
+The dependency injection in this library is done with [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection), the same as ASP.NET Core. This means that you can also test custom services and controllers and expect identical behavior as in your application.
 
 ## License
 

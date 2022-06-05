@@ -11,6 +11,7 @@ namespace esuite.Ditester
     {
         const string _defaultConfigJsonPath = "appsettings.json";
 
+        private bool _started = false;
         private bool _disposed = false;
 
         private bool _throw;
@@ -103,7 +104,47 @@ namespace esuite.Ditester
             instance.ServiceProvider = provider;
             instance.AddTestClasses(_tests);
 
+            _started = true;
+
             await start.Invoke(instance);
+        }
+
+        /// <summary>
+        /// Start the Dependency Injection Tester (Ditester)
+        /// and run testing.
+        /// </summary>
+        /// <returns></returns>
+        public Task StartAndRunAsync()
+        {
+            return StartAsync(async itester =>
+            {
+                await itester.RunTestsAsync();
+            });
+        }
+
+        /// <summary>
+        /// Start the Dependency Injection Tester (Ditester)
+        /// and run testing synchronously.
+        /// </summary>
+        public void StartAndRun()
+        {
+            StartAndRunAsync().Wait();
+        }
+
+        /// <summary>
+        /// Get the results after testing.
+        /// </summary>
+        /// <exception cref="DitesterException">
+        /// Thrown if this instance has not been started or
+        /// the <see cref="ITester" /> has not been run.
+        /// </exception>
+        /// <returns></returns>
+        public TestResultCollection GetResults()
+        {
+            if (!_started)
+                throw DitesterException.DitesterNotStarted();
+
+            return GetTesterInstance().GetResults();
         }
 
         /// <summary>
@@ -136,7 +177,12 @@ namespace esuite.Ditester
 
         private IServiceProvider GetProvider() => _host?.Services!;
 
-        private IEnumerable<Type> IdentifyTests()
+        private Tester GetTesterInstance()
+        {
+            return GetProvider().GetRequiredService<Tester>();
+        }
+
+        private static IEnumerable<Type> IdentifyTests()
         {
             var assembly = Assembly.GetEntryAssembly(); 
 
@@ -146,7 +192,7 @@ namespace esuite.Ditester
             return assembly.GetTypes().Where(t => IsValidType(t));
         }
 
-        private bool IsValidType(Type t)
+        private static bool IsValidType(Type t)
         {
             return
                 // Types should be able to be instantiated:

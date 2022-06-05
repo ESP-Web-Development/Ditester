@@ -3,10 +3,23 @@ namespace esuite.Ditester;
 public interface ITester
 {
     /// <summary>
-    /// Starts running all <see cref="esuite.Ditester.IDitest" />s.
+    /// Starts running all <see cref="IDitest" />s with real-time logging enabled.
     /// </summary>
     /// <returns></returns>
     Task RunTestsAsync();
+
+    /// <summary>
+    /// Starts running all <see cref="IDitest" />s.
+    /// </summary>
+    /// <param name="log">Whether to log testing in real-time.</param>
+    /// <returns></returns>
+    Task RunTestsAsync(bool log);
+
+    /// <summary>
+    /// Get test results after running.
+    /// </summary>
+    /// <returns></returns>
+    TestResultCollection GetResults();
 
     /// <summary>
     /// Whether tests are running.
