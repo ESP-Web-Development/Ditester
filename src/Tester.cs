@@ -54,6 +54,8 @@ internal class Tester : ITester
         if (ServiceProvider is null)
             return;
 
+        Running = true;
+
         foreach (var typeMethod in _testMethodsList)
         {
             var instance = ServiceProvider.GetService(typeMethod.ParentType);
@@ -68,6 +70,9 @@ internal class Tester : ITester
                     _successTests++;
             }
         }
+
+        Running = false;
+        Completed = true;
     }
 
     public T? RequestService<T>() where T : class
@@ -116,7 +121,41 @@ internal class Tester : ITester
         return foundTypeMethods;
     }
 
-    private bool IsValidMethod(MethodInfo methodInfo)
+    private async Task<bool> RunMethod(MethodInfo method, object objInstance, Type objType)
+    {
+        try
+        {
+            if (IsAsyncMethod(method))
+                await InvokeAsyncMethod(method, objInstance)!;
+            else
+                InvokeMethod(method, objInstance);
+
+            return true;
+        }
+        catch (TargetInvocationException ex)
+        {
+            var errReport = new StringBuilder();
+            errReport.AppendLine($"Test {method.Name} from {objType.Name} threw an exception.");
+            errReport.AppendLine(ex.InnerException?.Message);
+
+            _logger.LogError(errReport.ToString());
+
+            if (ThrowOnFail)
+                throw;
+        }
+        catch (Exception ex)
+        {
+            var errReport = new StringBuilder();
+            errReport.AppendLine($"Failed to invoke test {method.Name} from {objType.Name}!");
+            errReport.AppendLine(ex.Message);
+
+            _logger.LogCritical(errReport.ToString());
+        }
+ 
+        return false;
+    }
+
+    private static bool IsValidMethod(MethodInfo methodInfo)
     {
         // Valid methods are parameterless and should return
         // void, Task or types derived from Task.
@@ -130,46 +169,12 @@ internal class Tester : ITester
             methodInfo.ReturnType.IsAssignableTo(typeof(Task));
     }
 
-    private async Task<bool> RunMethod(MethodInfo method, object objInstance, Type objType)
-    {
-        try
-        {
-            if (IsAsyncMethod(method))
-                await InvokeAsyncMethod(method, objInstance)!;
-            else
-                InvokeMethod(method, objInstance);
-
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Failed to run {method.Name} from {objType.Name}.");
-
-            var stackTrace = new StackTrace(ex, true);
-            // 0 - RunMethod, 1 - Invoke(Async)Method, 2 - The method
-            var frame = stackTrace.GetFrame(2);
-
-            string methodName = frame?.GetMethod()?.Name ?? "notfound";
-            string fileName = frame?.GetFileName() ?? "notfound";
-            int lineNo = frame?.GetFileLineNumber() ?? 0;
-            int columnNo = frame?.GetFileColumnNumber() ?? 0;
- 
-            string exInfo = $"Error at {fileName}:{lineNo}:{columnNo} in method {methodName}";
-            _logger.LogInformation(exInfo);
-
-            if (ThrowOnFail)
-                throw;
-        }
- 
-        return false;
-    }
-
-    private void InvokeMethod(MethodInfo method, object objInstance)
+    private static void InvokeMethod(MethodInfo method, object objInstance)
     {
         method.Invoke(objInstance, null);
     }
 
-    private Task? InvokeAsyncMethod(MethodInfo method, object objInstance)
+    private static Task? InvokeAsyncMethod(MethodInfo method, object objInstance)
     {
         return method.Invoke(objInstance, null) as Task;
     }
