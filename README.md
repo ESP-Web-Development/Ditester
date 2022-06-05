@@ -65,14 +65,14 @@ await ditester.StartAsync(async tester =>
 });
 ```
 
-Or, if you are the *oldschool* type
+Or, if you are the *old school* type (**yikes**):
 
 ``` C#
-// Same as StartAndRunAsync().Wait();
 ditester.StartAndRun();
+// Don't worry, async test methods will still be run.
 ```
 
-### 4. Optional: View your results
+### 4. Optional: View the results
 
 ``` C#
 foreach (var testResult in ditester.GetResults())
@@ -85,7 +85,11 @@ Easy as pie.
 
 ## About Ditester
 
-The dependency injection in this library is done with [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection), the same as ASP.NET Core. This means that you can also test custom services and controllers and expect identical behavior as in your application.
+The dependency injection in this library is done with the help of [`Microsoft.Extensions.DependencyInjection`](https://github.com/dotnet/runtime/tree/main/src/libraries/Microsoft.Extensions.DependencyInjection), the same as ASP.NET Core. This means that you can also test custom services and controllers written for ASP.NET Core and expect identical behavior as in your application.
+
+There's no need to set up an [`IHost`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.ihost). Ditester already does that and it also exposes the [`HostBuilderContext`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.hostbuildercontext) to the user during instantiation. Keep in mind that the `IHost` never actually gets started and it is used internally solely for its [`IServiceProvider`](https://docs.microsoft.com/en-us/dotnet/api/system.iserviceprovider).
+
+This library is meant to be kept small and simple to use, and currently there are no other features on the TODO list. At the moment, any users that would like to see new major features are encouraged to start their own fork of this project.
 
 ## License
 
