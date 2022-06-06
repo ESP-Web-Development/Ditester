@@ -58,10 +58,16 @@ internal class Tester : ITester
 
         Running = true;
 
+        if (log && ThrowOnFail)
+            _logger.LogInformation("Ditester will throw exceptions!");
+
         foreach (var typeMethod in _testMethodsList)
         {
             var type = typeMethod.ParentType;
             object instance;
+
+            if (log)
+                _logger.LogInformation($"Testing {typeMethod.MethodsCount} methods from {type.Name}.");
 
             try
             {
@@ -69,7 +75,12 @@ internal class Tester : ITester
             }
             catch (Exception ex)
             {
+                _logger.LogError($"Failed instatiation of {type.Name} with message:\n{ex.Message}.");
+
                 var inner = DitesterException.FailedTypeInitialization(type.Name, ex);
+                if (ThrowOnFail)
+                    throw inner;
+
                 _resultCol.AddResults(typeMethod.Methods.Select(m => new TestResult(type, m, false, inner)));
                 continue;
             }
@@ -158,6 +169,9 @@ internal class Tester : ITester
     private async Task<TestResult> RunMethod(MethodInfo method, object objInstance, Type objType, bool log)
     {
         var result = new TestResult(objType, method, false);
+
+        if (log)
+            _logger.LogInformation($"Running {method.Name} of {objType.Name}...");
 
         try
         {

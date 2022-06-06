@@ -17,6 +17,7 @@ namespace esuite.Ditester
         private bool _throw;
         private IHostBuilder _hostBuilder;
         private IHost? _host;
+        private ILogger? _logger;
         private Action<HostBuilderContext, IServiceCollection> _configureDelegate;
 
         private IEnumerable<Type>? _tests;
@@ -98,6 +99,8 @@ namespace esuite.Ditester
             .Build();
 
             var provider = GetProvider();
+
+            _logger = provider.GetRequiredService<ILogger>();
 
             var instance = provider.GetRequiredService<Tester>();
             instance.ThrowOnFail = _throw;
